@@ -12,8 +12,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
+import shutil
+import sys
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -21,6 +22,7 @@ import os
 
 sys.path.insert(0, os.path.abspath('../src'))
 
+from sphinx.ext import apidoc
 import rez
 
 # -- General configuration ------------------------------------------------
@@ -33,13 +35,13 @@ needs_sphinx = '1.3'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
     'sphinx.ext.githubpages',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -79,7 +81,7 @@ release = rez.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', '_templates', 'Thumbs.db', '.DS_Store']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -139,7 +141,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['_templates']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -272,3 +274,49 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+
+def _clear_rst_files(directory):
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
+
+        return
+
+    for name in os.listdir(directory):
+        if not name.endswith(source_suffix):
+            continue
+
+        os.remove(os.path.join(directory, name))
+
+
+def _generate_api_files():
+    current_directory = os.path.dirname(os.path.realpath(__file__))
+    root = os.path.dirname(current_directory)
+    source = os.path.join(root, "src")
+    destination = os.path.join(current_directory, "api")
+    excluded_directories = [
+        os.path.join(source, "build_utils"),
+        os.path.join(source, "rez", "tests"),
+        os.path.join(source, "rez", "vendor"),
+        os.path.join(source, "support"),
+        os.path.join(source, "rezgui"),  # TODO : Remove this later, once Qt is fixed
+    ]
+
+    _clear_rst_files(destination)
+
+    command = [
+        "--separate",
+        "--output-dir",
+        destination,
+        "--templatedir",
+        os.path.join(current_directory, "_templates"),
+        source,
+    ]
+
+    # Don't generate API documentation for these folders
+    command.extend(excluded_directories)
+
+    apidoc.main(command)
+
+
+_generate_api_files()

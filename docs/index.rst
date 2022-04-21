@@ -1,11 +1,11 @@
-REZ API Reference
-=================
+#################
+Rez Documentation
+#################
 
 .. toctree::
     :maxdepth: 2
-    :numbered:
 
-    api/modules
+    API Documentation <api/modules>
     one-liners
 
 
