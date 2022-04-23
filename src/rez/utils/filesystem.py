@@ -486,6 +486,19 @@ def movetree(src, dst):
         shutil.rmtree(src)
 
 
+def to_environment_name(name):
+    """Change ``name`` from a Rez package family name to is env-var equivalent.
+
+    Args:
+        name (str): A Rez package name. e.g. ``"python"``, ``"foo.bar"``, etc.
+
+    Returns:
+        str: The converted name. e.g. ``"PYTHON"``, ``"FOO_BAR"``, etc.
+
+    """
+    return name.upper().replace('.', '_')
+
+
 def safe_chmod(path, mode):
     """Set the permissions mode on path, but only if it differs from the current mode.
     """
